@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0a0b0f">
+  <title>IELTS Workspace & Homework Tracker</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235b56ea' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-main: #0a0b0f;
+      --bg-noise: #0d0f14;
+      --card-bg: #12141c;
+      --card-bg-raised: #171a24;
+      --card-border: #1f2230;
+      --card-border-hover: #2a2e42;
+      --input-bg: #0b0c11;
+      --text-main: #f4f5f7;
+      --text-muted: #8b8fa3;
+      --text-faint: #565a6e;
+      --primary: #5b56ea;
+      --primary-hover: #4c47d6;
+      --accent-blue: #38bdf8;
+      --success-green: #34d399;
+      --danger-red: #f87171;
+      --note-bg: rgba(245, 158, 11, 0.07);
+      --note-border: rgba(245, 158, 11, 0.22);
+      --note-text: #fbbf24;
+      --radius-lg: 14px;
+      --radius-md: 10px;
+      --radius-sm: 7px;
+      --shadow-card: inset 0 1px 0 rgba(255,255,255,0.045), 0 1px 2px rgba(0,0,0,0.4), 0 12px 32px -12px rgba(0,0,0,0.55);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-feature-settings: 'cv11', 'ss01', 'cv01';
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      background:
+        radial-gradient(ellipse 900px 500px at 50% -10%, rgba(91, 86, 234, 0.08), transparent),
+        var(--bg-main);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 56px 20px 80px;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Faint grain so the flat dark panels don't feel like a flat CSS gradient */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.035;
+      z-index: 0;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    }
+
+    ::selection { background: rgba(91, 86, 234, 0.35); }
+
+    :focus-visible {
+      outline: 2px solid var(--accent-blue);
+      outline-offset: 2px;
+      border-radius: 6px;
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 700px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ---------- Header ---------- */
+    .header {
+      margin-bottom: 30px;
+    }
+
+    .header-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent-blue);
+      background: rgba(56, 189, 248, 0.09);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      padding: 4px 10px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 14px;
+    }
+
+    .header h1 {
+      font-size: 27px;
+      font-weight: 800;
+      color: var(--text-main);
+      letter-spacing: -0.7px;
+    }
+
+    .header p {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-top: 6px;
+      line-height: 1.5;
+    }
+
+    /* ---------- Card Panels ---------- */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      box-shadow: var(--shadow-card);
+      margin-bottom: 22px;
+    }
+
+    textarea {
+      width: 100%;
+      height: 124px;
+      background: var(--input-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 13.5px;
+      line-height: 1.6;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+
+    textarea::placeholder { color: var(--text-faint); }
+
+    textarea:focus {
+      border-color: var(--primary);
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+      align-items: center;
+    }
+
+    .save-status {
+      margin-left: auto;
+      font-size: 11.5px;
+      color: var(--text-faint);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .save-status svg { width: 12px; height: 12px; flex-shrink: 0; }
+
+    .save-status kbd {
+      font-family: inherit;
+      font-size: 10.5px;
+      color: var(--text-muted);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--card-border);
+      border-radius: 4px;
+      padding: 1.5px 5px;
+    }
+
+    button {
+      padding: 10px 18px;
+      border-radius: var(--radius-sm);
+      font-family: inherit;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.08s ease;
+    }
+
+    button:active { transform: scale(0.98); }
+    button svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #ffffff;
+      border: 1px solid var(--primary);
+    }
+
+    .btn-primary:hover { background: var(--primary-hover); border-color: var(--primary-hover); }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text-muted);
+      border: 1px solid var(--card-border);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: var(--card-border-hover);
+      color: var(--text-main);
+    }
+
+    .btn-secondary:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .btn-secondary:disabled:hover {
+      background: rgba(255, 255, 255, 0.03);
+      border-color: var(--card-border);
+    }
+
+    /* ---------- Dashboard & Progress ---------- */
+    .dashboard-panel {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-lg);
+      padding: 18px 20px;
+      margin-bottom: 22px;
+      display: none;
+      box-shadow: var(--shadow-card);
+    }
+
+    .stats-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 11px;
+    }
+
+    .stats-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-faint);
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+    }
+
+    .stats-count {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent-blue);
+      font-variant-numeric: tabular-nums;
+      transition: color 0.2s ease;
+    }
+
+    .stats-count.is-complete { color: var(--success-green); }
+
+    .progress-track {
+      height: 7px;
+      background: var(--input-bg);
+      border-radius: 99px;
+      overflow: hidden;
+      margin-bottom: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--primary), var(--accent-blue));
+      border-radius: 99px;
+      transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .progress-fill.is-complete { background: var(--success-green); }
+
+    /* ---------- Controls & Tabs ---------- */
+    .filter-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      padding-top: 15px;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 3px;
+      background: var(--input-bg);
+      padding: 3px;
+      border-radius: var(--radius-sm) + 2px;
+      border: 1px solid var(--card-border);
+    }
+
+    .tab-btn {
+      padding: 6px 13px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      background: transparent;
+      color: var(--text-muted);
+      border: none;
+      cursor: pointer;
+    }
+
+    .tab-btn:hover:not(.active) { color: var(--text-main); }
+
+    .tab-btn.active {
+      background: var(--card-bg-raised);
+      color: var(--text-main);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+    }
+
+    .copy-btn {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 8px 14px;
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text-muted);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-sm);
+    }
+
+    .copy-btn:hover {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: var(--card-border-hover);
+      color: var(--text-main);
+    }
+
+    /* ---------- Category Groups ---------- */
+    .category-group {
+      margin-top: 26px;
+      margin-bottom: 11px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .category-group:first-child { margin-top: 0; }
+
+    .category-group::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, var(--card-border), transparent);
+      margin-left: 2px;
+    }
+
+    .category-badge {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.7px;
+      text-transform: uppercase;
+      color: var(--accent-blue);
+      background: rgba(56, 189, 248, 0.07);
+      border: 1px solid rgba(56, 189, 248, 0.16);
+      padding: 5px 11px 5px 8px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .category-badge svg { width: 12px; height: 12px; flex-shrink: 0; }
+
+    .category-count {
+      font-size: 11.5px;
+      color: var(--text-faint);
+      font-weight: 500;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ---------- Task Item ---------- */
+    @keyframes itemIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .task-item {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: flex-start;
+      gap: 13px;
+      cursor: pointer;
+      user-select: none;
+      transition: border-color 0.15s ease, background-color 0.15s ease;
+      animation: itemIn 0.28s ease both;
+    }
+
+    /* ---------- Task Group (one pasted line split into separately-tickable parts) ---------- */
+    .task-group {
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-md);
+      padding: 5px;
+      margin-bottom: 8px;
+      background: rgba(255, 255, 255, 0.015);
+      animation: itemIn 0.28s ease both;
+    }
+
+    .task-group .task-item {
+      border-color: transparent;
+      margin-bottom: 4px;
+    }
+
+    .task-group .task-item:hover {
+      border-color: var(--card-border-hover);
+    }
+
+    .task-group .task-item:last-child { margin-bottom: 0; }
+
+    .subtask-letter {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-faint);
+      width: 14px;
+      flex-shrink: 0;
+      margin-top: 3px;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    .task-item.is-completed .subtask-letter { color: #3a3e50; }
+
+    .task-item:hover {
+      border-color: var(--card-border-hover);
+      background: var(--card-bg-raised);
+    }
+
+    .custom-check {
+      width: 19px;
+      height: 19px;
+      border: 1.5px solid #454a5e;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 1px;
+      flex-shrink: 0;
+      background: var(--input-bg);
+      transition: background-color 0.15s ease, border-color 0.15s ease;
+    }
+
+    .custom-check svg {
+      width: 11px;
+      height: 11px;
+      stroke: #ffffff;
+      stroke-dasharray: 20;
+      stroke-dashoffset: 20;
+      transition: stroke-dashoffset 0.2s ease;
+    }
+
+    .task-item.is-completed .custom-check {
+      background: var(--success-green);
+      border-color: var(--success-green);
+    }
+
+    .task-item.is-completed .custom-check svg {
+      stroke-dashoffset: 0;
+    }
+
+    .task-label {
+      font-size: 14px;
+      line-height: 1.55;
+      color: var(--text-main);
+      font-weight: 400;
+    }
+
+    .task-item.is-completed {
+      background: rgba(18, 20, 28, 0.4);
+      border-color: rgba(255, 255, 255, 0.03);
+    }
+
+    .task-item.is-completed .task-label {
+      text-decoration: line-through;
+      text-decoration-color: var(--text-faint);
+      color: var(--text-faint);
+    }
+
+    .empty-filter-state {
+      text-align: center;
+      padding: 34px 20px;
+      color: var(--text-faint);
+      font-size: 13px;
+      display: none;
+    }
+
+    /* ---------- Essentials / Note Card ---------- */
+    .essentials-card {
+      background: var(--note-bg);
+      border: 1px solid var(--note-border);
+      border-radius: var(--radius-md);
+      padding: 16px 18px;
+      margin-top: 26px;
+      display: flex;
+      gap: 13px;
+      align-items: flex-start;
+    }
+
+    .essentials-icon {
+      flex-shrink: 0;
+      width: 16px;
+      height: 16px;
+      margin-top: 2px;
+      stroke: var(--note-text);
+    }
+
+    .essentials-content h4 {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--note-text);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 4px;
+    }
+
+    .essentials-content p {
+      font-size: 13.5px;
+      color: #fde8b0;
+      line-height: 1.55;
+    }
+
+    /* ---------- Toast ---------- */
+    #toast {
+      position: fixed;
+      left: 50%;
+      bottom: 28px;
+      transform: translate(-50%, 12px);
+      background: var(--card-bg-raised);
+      border: 1px solid var(--card-border-hover);
+      color: var(--text-main);
+      font-size: 13px;
+      font-weight: 500;
+      padding: 11px 18px;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-card);
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      z-index: 100;
+    }
+
+    #toast.show {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    #toast svg { width: 15px; height: 15px; stroke: var(--success-green); flex-shrink: 0; }
+
+    @media (max-width: 480px) {
+      body { padding: 32px 14px 60px; }
+      .header h1 { font-size: 23px; }
+      .filter-bar { align-items: stretch; }
+    }
+
+    /* ---------- Scrollbar theming ---------- */
+    ::-webkit-scrollbar { width: 10px; height: 10px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb {
+      background: var(--card-border-hover);
+      border-radius: 99px;
+      border: 2px solid var(--bg-main);
+    }
+    ::-webkit-scrollbar-thumb:hover { background: #3a3f56; }
+    * { scrollbar-width: thin; scrollbar-color: var(--card-border-hover) transparent; }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <div class="header">
+      <span class="header-badge">IELTS Workspace</span>
+      <h1>Homework & Task Tracker</h1>
+      <p>Paste a coaching message below to turn it into a tracked checklist.</p>
+    </div>
+
+    <div class="card">
+      <textarea id="rawText" placeholder="Paste your coaching homework message here..."></textarea>
+      <div class="btn-row">
+        <button class="btn-primary" onclick="processText()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+          Generate Checklist
+        </button>
+        <button class="btn-secondary" id="resetBtn" onclick="clearAll()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5"/></svg>
+          Reset
+        </button>
+        <span class="save-status" id="saveStatus"><kbd>Ctrl/⌘</kbd>+<kbd>Enter</kbd></span>
+      </div>
+    </div>
+
+    <div id="progressPanel" class="dashboard-panel">
+      <div class="stats-header">
+        <span class="stats-title">Overall Progress</span>
+        <span id="statsCount" class="stats-count">0 / 0 Completed (0%)</span>
+      </div>
+      <div class="progress-track">
+        <div id="progressBar" class="progress-fill"></div>
+      </div>
+
+      <div class="filter-bar">
+        <div class="tabs">
+          <button class="tab-btn active" onclick="setFilter('all', this)">All</button>
+          <button class="tab-btn" onclick="setFilter('pending', this)">Pending</button>
+          <button class="tab-btn" onclick="setFilter('completed', this)">Completed</button>
+        </div>
+        <button class="copy-btn" id="copyBtn" onclick="copyPendingTasks()">Copy Pending</button>
+      </div>
+    </div>
+
+    <div id="outputContainer" style="display:none;">
+      <div id="listItems"></div>
+      <div id="emptyFilterState" class="empty-filter-state">Nothing here for this filter.</div>
+      <div id="essentialsBox"></div>
+    </div>
+  </div>
+
+  <div id="toast">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+    <span id="toastMsg">Copied to clipboard</span>
+  </div>
+
+  <script>
+    let currentFilter = 'all';
+    let toastTimer = null;
+
+    // ---------- Storage helpers ----------
+    function safeGet(k) { try { return localStorage.getItem(k); } catch(e) { return null; } }
+    function safeSet(k, v) { try { localStorage.setItem(k, v); } catch(e) {} }
+    function safeClear() { try { localStorage.clear(); } catch(e) {} }
+
+    // ---------- Category icon system ----------
+    // Monochrome line icons mapped to what the category actually is, instead of emoji.
+    const CATEGORY_ICONS = {
+      speaking: '<path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"/>',
+      writing: '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
+      reading: '<path d="M2 4.5A2.5 2.5 0 0 1 4.5 2H9a4 4 0 0 1 3 1.5A4 4 0 0 1 15 2h4.5A2.5 2.5 0 0 1 22 4.5v14A2.5 2.5 0 0 1 19.5 21H15a4 4 0 0 0-3 1.5A4 4 0 0 0 9 21H4.5A2.5 2.5 0 0 1 2 18.5Z"/><path d="M12 3.5v18"/>',
+      listening: '<path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>',
+      test: '<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',
+      default: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>'
+    };
+
+    function getCategoryIcon(name) {
+      const lower = name.toLowerCase();
+      if (lower.includes('speak')) return CATEGORY_ICONS.speaking;
+      if (lower.includes('writ')) return CATEGORY_ICONS.writing;
+      if (lower.includes('read')) return CATEGORY_ICONS.reading;
+      if (lower.includes('listen')) return CATEGORY_ICONS.listening;
+      if (lower.includes('test') || lower.includes('article')) return CATEGORY_ICONS.test;
+      return CATEGORY_ICONS.default;
+    }
+
+    function svgIcon(pathData, cls) {
+      return `<svg class="${cls || ''}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${pathData}</svg>`;
+    }
+
+    // Splits one pasted line into separately-tickable sub-tasks when it bundles
+    // several assignments together (e.g. "Video Part-2 (2 mins), Note making & Part-3 (3 mins)").
+    // Splits on top-level commas/"&" only — text inside parentheses is protected so
+    // things like "(at least 2 mins)" never get cut in half.
+    function splitIntoSubtasks(text) {
+      let depth = 0;
+      let current = '';
+      const rawParts = [];
+      for (const ch of text) {
+        if (ch === '(') depth++;
+        if (ch === ')') depth = Math.max(0, depth - 1);
+        if (depth === 0 && (ch === ',' || ch === '&')) {
+          rawParts.push(current);
+          current = '';
+        } else {
+          current += ch;
+        }
+      }
+      rawParts.push(current);
+      return rawParts
+        .map(p => p.trim().replace(/^[-–—:;]+|[-–—:;]+$/g, '').trim())
+        .filter(p => p.length > 0);
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const savedRaw = safeGet('ielts_task_raw');
+      if (savedRaw) {
+        document.getElementById('rawText').value = savedRaw;
+        generateList(savedRaw);
+      }
+      updateResetState();
+    });
+
+    function updateResetState() {
+      const hasContent = document.getElementById('rawText').value.trim().length > 0;
+      document.getElementById('resetBtn').disabled = !hasContent;
+    }
+
+    function processText() {
+      const raw = document.getElementById('rawText').value;
+      if (!raw.trim()) return;
+      safeSet('ielts_task_raw', raw);
+      generateList(raw);
+      updateResetState();
+      markSaved();
+      document.getElementById('progressPanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function markSaved() {
+      const el = document.getElementById('saveStatus');
+      el.innerHTML = svgIcon('<path d="M20 6L9 17l-5-5"/>') + 'Saved';
+      el.style.color = 'var(--success-green)';
+      clearTimeout(markSaved._t);
+      markSaved._t = setTimeout(() => {
+        el.innerHTML = '<kbd>Ctrl/⌘</kbd>+<kbd>Enter</kbd>';
+        el.style.color = 'var(--text-faint)';
+      }, 2200);
+    }
+
+    function generateList(raw) {
+      const lines = raw.split('\n');
+      const categoryKeywords = ['speaking', 'freehand writing', 'writing', 'listening', 'article', 'test', 'reading'];
+      const ignoreKeywords = ['homework', 'batch', 'happy learning', 'confusion', 'text me', 'allowed to text'];
+
+      // Pass 1: turn raw lines into a flat list of typed entries (category / task / note).
+      const entries = [];
+      let essentialsHtml = "";
+
+      lines.forEach((line) => {
+        let trimmed = line.trim();
+        if (!trimmed) return;
+        let lower = trimmed.toLowerCase();
+
+        if (ignoreKeywords.some(kw => lower.includes(kw))) return;
+
+        if (lower.startsWith('n.b') || lower.startsWith('note')) {
+          let text = trimmed.replace(/^[*_★♦️🗣️✒️🎧📄📝🔖📚☘️🤗\-\•\>]*\s*(n\.b|note)\s*:\s*/gi, '').replace(/[*_]/g, '').trim();
+          essentialsHtml += `
+            <div class="essentials-card">
+              ${svgIcon('<path d="M12 9v4M12 17h.01M10.29 3.86l-8.18 14.18A2 2 0 0 0 3.82 21h16.36a2 2 0 0 0 1.71-3.03L13.71 3.86a2 2 0 0 0-3.42 0z"/>', 'essentials-icon')}
+              <div class="essentials-content">
+                <h4>Class Note / Instruction</h4>
+                <p>${text}</p>
+              </div>
+            </div>`;
+          return;
+        }
+
+        let cleanText = trimmed.replace(/[*_★♦️🗣️✒️🎧📄📝🔖📚☘️🤗]/g, '').trim();
+        let cleanLower = cleanText.toLowerCase();
+
+        if (cleanText.endsWith(':') || (categoryKeywords.includes(cleanLower) && cleanText.length < 25)) {
+          let catName = cleanText.replace(':', '').trim();
+          if (catName.length > 0 && !cleanLower.includes('1200 word')) {
+            entries.push({ type: 'category', name: catName });
+            return;
+          }
+        }
+
+        let cleanTask = trimmed.replace(/^[*_★♦️🗣️✒️🎧📄📝🔖📚☘️🤗\-\•\>]\s*/g, '').replace(/[*_]/g, '').trim();
+        if (cleanTask.length > 0) {
+          const parts = splitIntoSubtasks(cleanTask);
+          if (parts.length > 1) {
+            const gid = 'g' + entries.length;
+            parts.forEach((part, i) => {
+              entries.push({ type: 'task', text: part, groupId: gid, letter: String.fromCharCode(97 + i) });
+            });
+          } else {
+            entries.push({ type: 'task', text: cleanTask });
+          }
+        }
+      });
+
+      // Pass 2: render, now that each category can report how many tasks follow it.
+      let html = "";
+      let taskIdx = 0;
+
+      function renderTaskRow(entry, letter) {
+        const delay = Math.min(taskIdx * 22, 260);
+        taskIdx++;
+        const letterHtml = letter ? `<span class="subtask-letter">${letter}</span>` : '';
+        return `
+            <div class="task-item" onclick="toggleTask(this)" style="animation-delay:${delay}ms">
+              ${letterHtml}
+              <div class="custom-check">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </div>
+              <span class="task-label">${entry.text}</span>
+            </div>`;
+      }
+
+      let i = 0;
+      while (i < entries.length) {
+        const entry = entries[i];
+
+        if (entry.type === 'category') {
+          let count = 0;
+          for (let j = i + 1; j < entries.length && entries[j].type !== 'category'; j++) {
+            if (entries[j].type === 'task') count++;
+          }
+          html += `<div class="category-group" data-type="category">
+              <span class="category-badge">${svgIcon(getCategoryIcon(entry.name))}${entry.name}</span>
+              <span class="category-count">${count} task${count === 1 ? '' : 's'}</span>
+            </div>`;
+          i++;
+          continue;
+        }
+
+        if (entry.groupId) {
+          const gid = entry.groupId;
+          let groupHtml = '';
+          while (i < entries.length && entries[i].groupId === gid) {
+            groupHtml += renderTaskRow(entries[i], entries[i].letter);
+            i++;
+          }
+          html += `<div class="task-group">${groupHtml}</div>`;
+          continue;
+        }
+
+        html += renderTaskRow(entry, null);
+        i++;
+      }
+
+      document.getElementById('listItems').innerHTML = html;
+      document.getElementById('essentialsBox').innerHTML = essentialsHtml;
+      document.getElementById('outputContainer').style.display = 'block';
+      document.getElementById('progressPanel').style.display = 'block';
+
+      calcProgress();
+      applyFilter();
+    }
+
+    function toggleTask(card) {
+      card.classList.toggle('is-completed');
+      calcProgress();
+      applyFilter();
+    }
+
+    function calcProgress() {
+      const items = document.querySelectorAll('.task-item');
+      const total = items.length;
+      let checked = 0;
+
+      items.forEach((item) => {
+        if (item.classList.contains('is-completed')) checked++;
+      });
+
+      const percentage = total === 0 ? 0 : Math.round((checked / total) * 100);
+      const bar = document.getElementById('progressBar');
+      const count = document.getElementById('statsCount');
+
+      bar.style.width = percentage + '%';
+      count.innerText = `${checked} / ${total} Completed (${percentage}%)`;
+
+      const complete = total > 0 && checked === total;
+      bar.classList.toggle('is-complete', complete);
+      count.classList.toggle('is-complete', complete);
+    }
+
+    function setFilter(filter, el) {
+      currentFilter = filter;
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      el.classList.add('active');
+      applyFilter();
+    }
+
+    function applyFilter() {
+      const items = document.querySelectorAll('.task-item');
+      const groups = document.querySelectorAll('.category-group');
+      const taskGroups = document.querySelectorAll('.task-group');
+      let anyVisible = false;
+
+      items.forEach(item => {
+        const isCompleted = item.classList.contains('is-completed');
+        let show = true;
+        if (currentFilter === 'pending') show = !isCompleted;
+        if (currentFilter === 'completed') show = isCompleted;
+        item.style.display = show ? 'flex' : 'none';
+        if (show) anyVisible = true;
+      });
+
+      // Hide a task-group wrapper entirely if every sub-task inside it got filtered out.
+      taskGroups.forEach(tg => {
+        const hasVisible = Array.from(tg.querySelectorAll('.task-item')).some(ti => ti.style.display !== 'none');
+        tg.style.display = hasVisible ? '' : 'none';
+      });
+
+      // Hide category headers whose tasks (including ones inside task-groups) are all filtered out.
+      groups.forEach(group => {
+        let sibling = group.nextElementSibling;
+        let hasVisibleTask = false;
+        while (sibling && !sibling.classList.contains('category-group')) {
+          if (sibling.classList.contains('task-item') && sibling.style.display !== 'none') {
+            hasVisibleTask = true;
+            break;
+          }
+          if (sibling.classList.contains('task-group') &&
+              Array.from(sibling.querySelectorAll('.task-item')).some(ti => ti.style.display !== 'none')) {
+            hasVisibleTask = true;
+            break;
+          }
+          sibling = sibling.nextElementSibling;
+        }
+        group.style.display = hasVisibleTask ? 'flex' : 'none';
+      });
+
+      document.getElementById('emptyFilterState').style.display =
+        (items.length > 0 && !anyVisible) ? 'block' : 'none';
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toastMsg').innerText = message;
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove('show'), 2200);
+    }
+
+    function copyPendingTasks() {
+      const items = document.querySelectorAll('.task-item:not(.is-completed)');
+      if (items.length === 0) {
+        showToast('No pending tasks to copy');
+        return;
+      }
+      let text = "Pending Tasks:\n";
+      items.forEach((item, idx) => {
+        text += `${idx + 1}. ${item.querySelector('.task-label').innerText}\n`;
+      });
+      navigator.clipboard.writeText(text).then(() => {
+        showToast('Pending tasks copied to clipboard');
+        flashCopyBtn();
+      }).catch(() => {
+        showToast('Could not copy — check clipboard permissions');
+      });
+    }
+
+    function flashCopyBtn() {
+      const btn = document.getElementById('copyBtn');
+      const original = btn.innerText;
+      btn.innerText = 'Copied ✓';
+      btn.style.color = 'var(--success-green)';
+      btn.style.borderColor = 'rgba(52, 211, 153, 0.35)';
+      clearTimeout(flashCopyBtn._t);
+      flashCopyBtn._t = setTimeout(() => {
+        btn.innerText = original;
+        btn.style.color = '';
+        btn.style.borderColor = '';
+      }, 1600);
+    }
+
+    function clearAll() {
+      if (!document.getElementById('rawText').value.trim()) return;
+      const hasChecklist = document.getElementById('outputContainer').style.display !== 'none';
+      if (hasChecklist && !confirm('This clears the pasted message and your ticked progress. Continue?')) return;
+      safeClear();
+      document.getElementById('rawText').value = '';
+      document.getElementById('outputContainer').style.display = 'none';
+      document.getElementById('progressPanel').style.display = 'none';
+      updateResetState();
+      showToast('Workspace cleared');
+    }
+
+    document.getElementById('rawText').addEventListener('input', updateResetState);
+
+    document.getElementById('rawText').addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        processText();
+      }
+    });
+  </script>
+</body>
+</html>
