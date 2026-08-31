@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#0a0b0f">
-  <title>IELTS Workspace & Homework Tracker</title>
+  <title>IELTS Workspace & Spelling Practice</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235b56ea' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -323,7 +323,91 @@
     ::-webkit-scrollbar-thumb { background: var(--card-border-hover); border-radius: 99px; border: 2px solid var(--bg-main); }
     ::-webkit-scrollbar-thumb:hover { background: #3a3f56; }
     * { scrollbar-width: thin; scrollbar-color: var(--card-border-hover) transparent; }
+  
+/* ---------- Spelling Practice ---------- */
+.spell-panel{background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius-lg);padding:20px;margin-bottom:22px;box-shadow:var(--shadow-card)}
+.spell-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:16px}
+.spell-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--text-faint)}
+.spell-subtitle{font-size:13px;color:var(--text-muted);margin-top:5px;line-height:1.5}
+.spell-count{font-size:12px;font-weight:700;color:var(--accent-blue);white-space:nowrap}
+.spell-controls{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.spell-controls select{background:var(--input-bg);border:1px solid var(--card-border);border-radius:var(--radius-sm);padding:9px 11px;color:var(--text-main);font-family:inherit;font-size:12.5px;outline:none}
+.spell-controls select:focus{border-color:var(--primary)}
+.spell-card{background:var(--card-bg-raised);border:1px solid var(--card-border);border-radius:var(--radius-md);padding:22px;text-align:center}
+.spell-progress{height:6px;background:var(--input-bg);border-radius:99px;overflow:hidden;margin-bottom:20px}.spell-progress-fill{height:100%;width:0;background:linear-gradient(90deg,var(--primary),var(--accent-blue));transition:width .25s ease}
+.spell-prompt{font-size:12px;color:var(--text-faint);margin-bottom:12px}.spell-answer{font-size:22px;font-weight:700;letter-spacing:.3px;min-height:31px;margin-bottom:16px;color:var(--text-main)}
+.spell-input{width:100%;max-width:440px;background:var(--input-bg);border:1px solid var(--card-border);border-radius:var(--radius-sm);padding:12px 14px;color:var(--text-main);font-family:inherit;font-size:15px;text-align:center;outline:none}.spell-input:focus{border-color:var(--primary)}
+.spell-feedback{min-height:22px;margin:11px 0;font-size:13px;font-weight:600}.spell-feedback.correct{color:var(--success-green)}.spell-feedback.wrong{color:var(--danger-red)}
+.spell-actions{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}.spell-score{margin-top:15px;font-size:12px;color:var(--text-faint)}
+.spell-hidden{display:none}
+.spell-answer.correct-reveal{font-size:26px;font-weight:800;letter-spacing:.02em}
+.spell-feedback.wrong{font-weight:700}
+
+body.spelling-mode .app-container > *{display:none!important}
+body.spelling-mode .app-container > .spell-panel{display:block!important;max-width:900px;margin:30px auto}
+.spell-home-btn{margin-left:auto}
+
   </style>
+
+<style>
+.spell-mistakes-panel{
+  margin-top:16px;
+  padding:18px;
+  border:1px solid rgba(255,90,90,.30);
+  background:linear-gradient(180deg,rgba(90,20,28,.24),rgba(30,12,18,.22));
+  border-radius:16px;
+  width:100%;
+  box-sizing:border-box;
+}
+.spell-mistakes-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  margin-bottom:12px;
+}
+.spell-mistakes-title{font-weight:800;color:#ff7373;font-size:16px}
+.spell-mistakes-subtitle{font-size:12px;opacity:.62;margin-top:3px}
+.spell-mistakes-count{
+  padding:6px 10px;
+  border-radius:999px;
+  background:rgba(255,90,90,.12);
+  color:#ff8585;
+  font-weight:700;
+  font-size:12px;
+  white-space:nowrap;
+}
+.spell-mistakes-list{display:grid;gap:8px}
+.spell-mistake-item{
+  display:grid;
+  grid-template-columns:32px minmax(0,1fr) 24px minmax(0,1fr);
+  gap:10px;
+  align-items:center;
+  padding:11px 12px;
+  border-radius:11px;
+  background:rgba(0,0,0,.22);
+  border:1px solid rgba(255,255,255,.05);
+}
+.spell-mistake-num{opacity:.5;font-weight:700}
+.spell-mistake-heard{
+  color:#ffb2b2;
+  overflow-wrap:anywhere;
+}
+.spell-mistake-arrow{opacity:.45;text-align:center}
+.spell-mistake-correct{
+  color:#67e6a3;
+  font-weight:800;
+  overflow-wrap:anywhere;
+}
+@media(max-width:620px){
+  .spell-mistakes-header{align-items:flex-start;flex-direction:column}
+  .spell-mistake-item{grid-template-columns:26px minmax(0,1fr);gap:6px}
+  .spell-mistake-arrow{display:none}
+  .spell-mistake-correct{grid-column:2}
+  .spell-mistake-correct::before{content:'Correct: ';opacity:.55;font-weight:500}
+}
+</style>
+
 </head>
 <body>
 
@@ -353,7 +437,59 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/></svg>
           Word Counter
         </button>
+        <button class="btn-secondary" onclick="enterSpellingMode()">🔤 Spelling Practice</button>
         <span class="save-status" id="saveStatus"><kbd>Ctrl/⌘</kbd>+<kbd>Enter</kbd></span>
+      </div>
+    </div>
+
+
+
+    <div class="spell-panel spell-hidden" id="spellingPanel">
+      <div class="spell-top">
+        <div>
+          <div class="spell-title">IELTS Spelling Practice</div>
+          <div class="spell-subtitle">Practice the 496 exact corrected IELTS vocabulary entries. Hear the word, type the spelling, then check your answer.</div>
+        </div>
+        <div class="spell-count" id="spellWordCount"></div>
+      </div>
+      <div class="spell-controls">
+        <select id="spellSetSize" aria-label="Practice set size">
+          <option value="20">20 words</option><option value="50">50 words</option><option value="100">100 words</option><option value="all">All words</option>
+        </select>
+        <select id="spellVoice" aria-label="English voice" title="Choose a clearer English voice"></select>
+        <select id="spellSpeed" aria-label="Voice speed" title="Choose pronunciation speed">
+          <option value="0.72">Normal</option>
+          <option value="0.58">Slow</option>
+          <option value="0.48">Very Slow</option>
+        </select>
+        <button class="btn-primary" onclick="startSpelling()" id="spellStartBtn">Start Practice</button>
+        <button class="btn-secondary" onclick="shuffleSpelling()">New Random Set</button>
+        <button class="btn-secondary spell-home-btn" onclick="exitSpellingMode()">⌂ Home</button>
+      </div>
+      <div class="spell-card" id="spellCard">
+        <div class="spell-progress"><div class="spell-progress-fill" id="spellProgressFill"></div></div>
+        <div class="spell-prompt" id="spellPrompt">Click “Start Practice” to begin.</div>
+        <div class="spell-answer" id="spellAnswer">🎧</div>
+        <input class="spell-input" id="spellInput" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Type the spelling you hear..." disabled>
+        <div class="spell-feedback" id="spellFeedback"></div>
+        <div class="spell-actions">
+          <button class="btn-secondary" onclick="speakCurrentWord()" id="spellListenBtn" disabled>🔊 Listen</button>
+          <button class="btn-primary" onclick="checkSpelling()" id="spellCheckBtn" disabled>Check</button>
+          <button class="btn-secondary" onclick="nextSpelling()" id="spellNextBtn" disabled>Next →</button>
+          <button class="btn-secondary" onclick="showSpellingAnswer()" id="spellShowBtn" disabled>Show Answer</button>
+        </div>
+        <div class="spell-score" id="spellScore">Score: 0 / 0</div>
+      </div>
+
+      <div id="spellMistakesPanel" class="spell-mistakes-panel" style="display:none;">
+        <div class="spell-mistakes-header">
+          <div>
+            <div class="spell-mistakes-title">❌ Mistakes Review</div>
+            <div class="spell-mistakes-subtitle">Review every word you got wrong in this test.</div>
+          </div>
+          <div class="spell-mistakes-count" id="spellMistakesCount">0 wrong</div>
+        </div>
+        <div id="spellMistakesList" class="spell-mistakes-list"></div>
       </div>
     </div>
 
@@ -508,69 +644,96 @@
     const LIST_PREFIX_RE = /^(?:[\-\•\▪\◦\➤\→\*]|\(?\d{1,2}[\.\)]|\(?[a-zA-Z][\.\)])\s+/;
 
     function parseRaw(raw) {
-      const lines = raw.split('\n');
-      const categoryKeywords = [
-        'speaking', 'freehand writing', 'writing', 'listening', 'article', 'test', 'reading',
-        'grammar', 'vocabulary', 'vocab', 'pronunciation', 'mock test', 'ielts'
+      const lines = String(raw || '').replace(/\r/g, '').split('\n');
+      const CATEGORY_ALIASES = new Map([
+        ['speaking','SPEAKING'], ['freehand writing','FREEHAND WRITING'], ['free hand writing','FREEHAND WRITING'],
+        ['writing','WRITING'], ['listening','LISTENING'], ['article','ARTICLE'], ['test','TEST'],
+        ['reading','READING'], ['grammar','GRAMMAR'], ['vocabulary','VOCABULARY'], ['vocab','VOCABULARY'],
+        ['pronunciation','PRONUNCIATION'], ['mock test','MOCK TEST'], ['ielts','IELTS']
+      ]);
+      const IGNORE_EXACT = new Set(['homework','happy learning']);
+      // Short/generic sign-offs: only ignored when they are the WHOLE line, so they
+      // never swallow a real task that happens to mention "thank you", "good luck", etc.
+      const IGNORE_PHRASES_EXACT = [
+        'good luck','thank you','thanks a lot','take care','stay blessed','stay safe','good night',
+        'happy learning','happy studying'
       ];
-      const ignoreKeywords = [
-        'homework', 'batch', 'happy learning', 'confusion', 'text me', 'allowed to text',
-        'good luck', 'thank you', 'thanks a lot', 'take care', 'stay blessed', 'stay safe', 'good night'
+      // Longer/distinctive sign-off phrases: safe to match anywhere in the line, since
+      // real IELTS task instructions are very unlikely to contain them incidentally.
+      const IGNORE_PHRASES_SUBSTR = [
+        'kinda confusion','kind of confusion','any kind of confusion',
+        'text me personally','feel free to text','allowed to text me','message me personally',
+        'contact me personally'
       ];
-      const items = [];
-      const notes = [];
-      let cid = 0, tid = 0, nid = 0;
+      const items=[], notes=[];
+      let cid=0, tid=0, nid=0, noteMode=false, noteBuffer='';
 
-      lines.forEach((line) => {
-        let trimmed = line.trim();
-        if (!trimmed) return;
-        let lower = trimmed.toLowerCase();
-        if (ignoreKeywords.some(kw => lower.includes(kw))) return;
+      const clean = value => String(value)
+        .replace(/[\*_~`]/g,'')
+        .replace(/[★♦️🗣️✒️🎧📄📝🔖📚☘️🤗]/g,'')
+        .replace(/^\s*[>]+\s*/,'')
+        .replace(/\u00a0/g,' ')
+        .replace(/[ \t]+/g,' ')
+        .trim();
+      const categoryName = value => CATEGORY_ALIASES.get(clean(value).replace(/\s*:\s*$/,'').toLowerCase()) || null;
+      const addCategory = name => {
+        const last=items[items.length-1];
+        if(last && last.type==='category' && last.name.toLowerCase()===name.toLowerCase()){ return; }
+        items.push({id:'c'+(cid++),type:'category',name});
+      };
+      const addTask = text => {
+        const t=clean(text).replace(LIST_PREFIX_RE,'').trim();
+        if(!t) return;
+        items.push({id:'t'+(tid++),type:'task',text:t,completed:false,groupId:null,letter:null});
+      };
+      const flushNote=()=>{
+        const text=noteBuffer.replace(/\s+/g,' ').trim();
+        if(text) notes.push({id:'n'+(nid++),text});
+        noteBuffer=''; noteMode=false;
+      };
+      const headerOrFooter=text=>{
+        const l=text.toLowerCase().replace(/[.!]+$/,'').trim();
+        if(IGNORE_EXACT.has(l)) return true;
+        if(/^batch(?:\s+hz[\w-]*)?\b/i.test(text)) return true;
+        if(IGNORE_PHRASES_EXACT.includes(l)) return true;
+        if(IGNORE_PHRASES_SUBSTR.some(x=>l.includes(x))) return true;
+        return false;
+      };
 
-        if (lower.startsWith('n.b') || lower.startsWith('note')) {
-          let text = trimmed.replace(/^[*_★♦️🗣️✒️🎧📄📝🔖📚☘️🤗\-\•\>]*\s*(n\.b|note)\s*:\s*/gi, '').replace(/[*_]/g, '').trim();
-          notes.push({ id: 'n' + (nid++), text });
-          return;
+      for(const line of lines){
+        if(!line.trim()) { if(noteMode && noteBuffer) flushNote(); continue; }
+        const text=clean(line); if(!text) continue;
+        const lower=text.toLowerCase();
+
+        if(/^(?:n\.\s*b\.?|n\.b\.?|note)\s*:/i.test(text)){
+          if(noteMode) flushNote();
+          noteMode=true;
+          noteBuffer=text.replace(/^(?:n\.\s*b\.?|n\.b\.?|note)\s*:\s*/i,'').trim();
+          continue;
         }
 
-        let cleanText = trimmed.replace(/[*_★♦️🗣️✒️🎧📄📝🔖📚☘️🤗]/g, '').trim();
-        let cleanLower = cleanText.toLowerCase();
-
-        // A line is a category header if it ends with ":" (any wording), OR is a short,
-        // digit-free line that STARTS WITH a module name (e.g. "Reading Practice", "Grammar Task")
-        // — startsWith (not "contains") keeps this from misfiring on tasks like "Practice reading".
-        const isShortLabel = cleanText.length < 28 && !/\d/.test(cleanText);
-        const startsWithKeyword = categoryKeywords.some(kw => cleanLower.startsWith(kw));
-        if (cleanText.endsWith(':') || (isShortLabel && startsWithKeyword)) {
-          let catName = cleanText.replace(/:$/, '').trim();
-          if (catName.length > 0 && !cleanLower.includes('1200 word')) {
-            items.push({ id: 'c' + (cid++), type: 'category', name: catName });
-            return;
+        // Only known category labels are categories. A colon in a task is never enough.
+        const inline=text.match(/^([^:]{2,40})\s*:\s*(.+)$/);
+        if(inline){
+          const inlineCat=categoryName(inline[1]);
+          if(inlineCat){
+            if(noteMode) flushNote();
+            addCategory(inlineCat); addTask(inline[2]); continue;
           }
         }
+        const cat=categoryName(text);
+        if(cat){ if(noteMode) flushNote(); addCategory(cat); continue; }
 
-        // Strip common bullet styles AND numbered/lettered list markers ("1.", "1)", "a)", "- ", "• "…)
-        let cleanTask = cleanText.replace(LIST_PREFIX_RE, '').trim();
-        if (cleanTask.length > 0) {
-          const parts = splitIntoSubtasks(cleanTask);
-          if (parts.length > 1) {
-            const gid = 'g' + tid;
-            parts.forEach((part, i) => {
-              items.push({ id: 't' + (tid++), type: 'task', text: part, completed: false, groupId: gid, letter: String.fromCharCode(97 + i) });
-            });
-          } else {
-            items.push({ id: 't' + (tid++), type: 'task', text: cleanTask, completed: false, groupId: null, letter: null });
-          }
+        if(noteMode){
+          if(!headerOrFooter(text)) noteBuffer += (noteBuffer?' ':'')+text;
+          continue;
         }
-      });
-
-      // If the message has tasks before any category header (or no headers at all),
-      // wrap them under a "General Tasks" heading so nothing renders without structure.
-      if (items.length > 0 && items[0].type === 'task') {
-        items.unshift({ id: 'c_general', type: 'category', name: 'General Tasks' });
+        if(headerOrFooter(text)) continue;
+        addTask(text);
       }
-
-      return { items, notes };
+      if(noteMode) flushNote();
+      if(items.length && items[0].type==='task') items.unshift({id:'c_general',type:'category',name:'General Tasks'});
+      return {items,notes};
     }
 
     // ---------- Rendering ----------
@@ -659,7 +822,8 @@
     function renderAll() {
       renderChecklist();
       const hasItems = current && current.items && current.items.length > 0;
-      document.getElementById('outputContainer').style.display = hasItems ? 'block' : 'none';
+      const hasNotes = current && current.notes && current.notes.length > 0;
+      document.getElementById('outputContainer').style.display = (hasItems || hasNotes) ? 'block' : 'none';
       document.getElementById('progressPanel').style.display = hasItems ? 'block' : 'none';
       calcProgress();
       applyFilter();
@@ -710,7 +874,7 @@
       if (current && current.items && current.items.length > 0) archiveCurrentToHistory();
 
       const parsed = parseRaw(raw);
-      current = { raw, savedAt: new Date().toISOString(), items: parsed.items, notes: parsed.notes };
+      current = { raw, savedAt: new Date().toISOString(), parserVersion: 2, items: parsed.items, notes: parsed.notes };
       saveCurrent();
       renderAll();
       updateResetState();
@@ -895,7 +1059,7 @@
         const pct = h.totalCount ? Math.round(h.completedCount / h.totalCount * 100) : 0;
         return `<div class="history-entry">
           <div class="history-entry-info">
-            <span class="history-entry-date">${formatDate(h.date)}</span>
+            <span class="history-entry-date">${escapeHtml(formatDate(h.date))}</span>
             <span class="history-entry-stats">${h.completedCount}/${h.totalCount} completed · ${pct}%</span>
           </div>
           <div class="history-entry-actions">
@@ -912,7 +1076,7 @@
       if (!entry) return;
       if (current && current.items && current.items.length) archiveCurrentToHistory();
       history = history.filter(h => h.id !== id);
-      current = { raw: entry.raw, savedAt: new Date().toISOString(), items: JSON.parse(JSON.stringify(entry.items)), notes: JSON.parse(JSON.stringify(entry.notes)) };
+      current = { raw: entry.raw, savedAt: new Date().toISOString(), parserVersion: entry.parserVersion || 1, items: JSON.parse(JSON.stringify(entry.items)), notes: JSON.parse(JSON.stringify(entry.notes)) };
       document.getElementById('rawText').value = current.raw;
       saveCurrent();
       saveHistory();
@@ -1102,6 +1266,229 @@
 
     document.getElementById('wcInput').addEventListener('input', updateWordCount);
     document.getElementById('wcTargetInput').addEventListener('input', updateWordCount);
+
+
+    // ---------- IELTS Spelling Practice ----------
+    const SPELLING_WORDS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "Weekdays", "Weekend", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December", "Money", "Matters", "Cash", "Debit", "Credit card", "Check", "In advance", "Annual fee", "Monthly membership", "Interest rate", "Deposit", "Tuition fees", "Poverty", "Bank statement", "Money management", "Current account", "Student account", "Withdrawal", "Low-risk investment", "Mortgage", "Grace period", "Budget deficit", "Retail", "Voucher", "Coupon", "Counterfeit money", "Public money", "Taxpayers money", "Debt", "Interest-free", "Credit purchase", "Partial refund", "Annuity", "Non-refundable", "Mastercard", "Visa", "Distribution costs", "Income", "Finance department", "Family finances", "Duty-free store", "Science", "Politics", "History", "Biology", "Architecture", "Law", "Geography", "Archaeology", "Literature", "Business management", "Agriculture", "Statistics", "Mathematics", "Logic", "Physics", "Psychology", "Anthropology", "Economics", "Philosophy", "Performing Arts", "Visual Arts", "Chemistry", "Humanities", "Studying", "College", "University", "Course outline", "Group discussion", "Handout", "Written words", "Work", "Report writing", "Research", "Proofreading", "Experiment", "Experience", "Reference", "Textbook", "Dictionary", "Laptop", "Printer", "Student advisor", "Teamwork", "Module", "Topic", "Assessment", "Library", "Department", "Computer center", "Classroom", "Lecture", "Tutor", "Main hall", "Attendance", "Deadline", "Give a talk", "Speech", "Computer laboratory", "Certificate", "Diploma", "Placement test", "Overseas students", "Full-time", "Facilities", "College dining room", "Specialist knowledge", "International", "Accommodation", "Homestay", "Primary", "Secondary", "Intermediate", "Media room", "Resources room", "Staff", "Commencement", "Dissertation", "Leaflet", "Faculty", "Pupils", "Pencil", "Feedback", "Tasks", "Outcomes", "Advanced", "Introductory", "Extra", "Background", "Higher education", "Guidelines", "Postsecondary", "Supervisor", "Bachelor's degree", "Compound vocabulary", "Student Support Services", "Student retention", "Publication", "Foreign students", "Schedule", "School reunion", "Register", "Ours", "Office stationery", "Nature", "Field", "Footbridge", "Environment", "Waterfall", "River", "Mountain", "Forest", "Village", "Coast", "Reef", "Lake", "Valley", "Hill", "Cliff", "Island", "Peninsula", "Earthquake", "Avalanche", "Tornado", "Typhoon", "Desertification", "Volcano", "Disaster", "Catastrophe", "Erosion", "Landslides", "Storm", "Flood", "Hurricane", "Pond", "Jungle", "Oasis", "Dam", "Canyon", "Marketing", "Catalog", "Interview", "Newsletter", "Competition", "TV program", "Strategies", "Research method", "Entertainment industry", "Leadership", "Management", "Display products", "Customer", "Special offer", "Collecting data", "Questionnaire", "Survey", "Mass media", "Statistic", "Profit margin", "Pole", "Business card", "Training", "Trainee", "Merchandise", "Manufacturer", "Recruitment", "Health", "Yoga", "Tai Chi", "Keep fit", "Salad bar", "Vegetarian", "Outdoor activities", "Leisure time", "Disease", "Meal", "Protein", "Balanced diet", "Food pyramid", "Vitamin", "Carbohydrates", "Rice", "Pasta", "Potatoes", "Pizza", "Tomatoes", "Bread", "Cereals", "Minerals", "Zinc", "Meat", "Seafood", "Eggs", "Beans", "Milk", "Cheese", "Yolk", "Yogurt", "Fruit", "Vegetables", "Citrus fruits", "Green pepper", "Black currant", "Nuts", "Egg yolk", "Liver", "Medicine", "Treatment", "Remedy", "Nursing care", "Nursery", "Regular exercise", "Greenhouse effect", "Acid rain", "Global warming", "Carbon dioxide", "Burning fossil", "Exhaust fumes", "Deforestation", "Nitrogen oxide", "Smog", "Climate", "Pollution", "Temperature", "Power plants", "Landfill", "Cattle", "Winter", "Biome", "Solar power", "Hydroelectric power", "Renewable source", "Reliable", "Solar panels", "Environmentally friendly", "Oxygen", "Chemical-free", "Desert degradation", "Vegetation", "Sea level", "Ocean currents", "Soil conditioner", "Coal", "Fossil fuels", "Firewood", "Drought", "Contaminated", "Animal kingdom", "Birds of prey", "Seabirds", "Poultry and game", "Mammals", "Cetacean", "Whale", "Primates", "Rodents", "Fish", "Amphibian", "Reptile", "Insects", "Phylum", "Class", "Order", "Family", "Genus", "Species", "Livestock", "Creature", "Lion", "Penguin", "Plants", "Mushroom", "Fungus", "Leaves", "Seed", "Core", "Bark", "Trunk", "Twig", "Branch", "Flower", "Stem", "Root", "Cluster", "Fertilizer", "Continents", "South America", "North America", "Africa", "Asia", "Europe", "Australia", "Antarctica", "Countries", "Egypt", "Mexico", "France", "Indonesia", "Turkey", "England", "Germany", "China", "Greece", "Brazil", "India", "North Korea", "Malaysia", "New Zealand", "Nigeria", "Pakistan", "Singapore", "Switzerland", "United Kingdom", "Italy", "The Dominican Republic", "The Philippines", "Denmark", "Languages", "Linguistics", "Bilingual", "Trilingual", "Polyglot", "Portuguese", "Mandarin", "Bengali", "Chinese", "Hindi", "Russian", "Japanese", "German", "Punjabi", "Thai", "Persian", "Filipino", "French", "Italian", "Spanish", "Greek", "Architecture and buildings", "Dome", "Palace", "Fort", "Castle", "Glasshouse", "Pyramid", "Log cabin", "Lighthouse", "Hut", "Skyscraper", "Sculpture", "Homes", "Semi-detached house", "Duplex", "Terrace house", "Townhouse", "Row house", "Bungalow", "Thatched cottage", "Mobile home", "Houseboat", "Block of flats", "Apartment building", "Condominium", "Chimney", "Bedroom", "Basement", "Landlord", "Tenant", "Rent", "Lease", "Neighborhood", "Suburb", "Sofa", "Coffee table", "Dormitory", "Story", "Kitchen", "Refrigerator", "Microwave", "Ground floor", "Oven", "Hallway", "Insurance", "In the city", "Cities", "Street", "Lane", "City Center", "Central Station", "Car Park", "Department store", "Bridge", "Temple", "Embassy", "Road system", "Hospital", "Garden", "Avenue", "Work places", "Clinic", "Dentist", "Reception", "Appointment", "Staff selection", "Colleague", "Workshop", "Showroom", "Information desk", "Employer", "Employment", "Unemployed", "Technical cooperation", "Team leaders", "Stress", "Ability", "Vision", "Confidence", "Employee", "Internship", "Rating and qualities", "Reasonable", "Satisfactory", "Dangerous", "Safe", "Strongly recommended", "Poor quality", "Satisfied", "Disappointed", "Efficient", "Luxurious", "Colored", "Spotted", "Striped", "Expensive", "Cheap"];
+    let spellingSet = [], spellingIndex = 0, spellingCorrect = 0, spellingWrong = 0, spellingChecked = false, spellingAdvanceTimer = null, spellingMistakes = [];
+
+    function normalizeSpelling(s){
+      return String(s).toLowerCase().trim().replace(/[’‘]/g,"'").replace(/\s+/g,' ');
+    }
+    function enterSpellingMode(){
+      renderSpellingMistakes();
+      document.body.classList.add('spelling-mode');
+      const panel=document.getElementById('spellingPanel');
+      panel.classList.remove('spell-hidden');
+      window.scrollTo({top:0,behavior:'smooth'});
+    }
+    function exitSpellingMode(){
+      clearTimeout(spellingSpeechTimer); spellingSpeechTimer=null;
+      clearTimeout(spellingAdvanceTimer); spellingAdvanceTimer=null;
+      if('speechSynthesis' in window) window.speechSynthesis.cancel();
+      document.body.classList.remove('spelling-mode');
+      document.getElementById('spellingPanel').classList.add('spell-hidden');
+      window.scrollTo({top:0,behavior:'smooth'});
+    }
+
+    function updateSpellCount(){
+      document.getElementById('spellWordCount').textContent = SPELLING_WORDS.length + ' terms loaded';
+    }
+    function startSpelling(){
+      clearTimeout(spellingSpeechTimer); spellingSpeechTimer=null;
+      if('speechSynthesis' in window) window.speechSynthesis.cancel();
+      const sizeVal=document.getElementById('spellSetSize').value;
+      const size=sizeVal==='all'?SPELLING_WORDS.length:parseInt(sizeVal,10);
+      spellingSet=[...SPELLING_WORDS].sort(()=>Math.random()-.5).slice(0,size);
+      clearTimeout(spellingAdvanceTimer); spellingAdvanceTimer=null; spellingIndex=0; spellingCorrect=0; spellingWrong=0; spellingChecked=false; spellingMistakes=[]; renderSpellingMistakes();
+      document.getElementById('spellInput').disabled=false;
+      document.getElementById('spellListenBtn').disabled=false;
+      document.getElementById('spellCheckBtn').disabled=false;
+      document.getElementById('spellShowBtn').disabled=false;
+      document.getElementById('spellNextBtn').disabled=false;
+      document.getElementById('spellStartBtn').textContent='Restart Practice';
+      renderSpellingQuestion();
+    }
+    function shuffleSpelling(){ startSpelling(); }
+    
+function renderSpellingMistakes(){
+  const panel=document.getElementById('spellMistakesPanel');
+  const list=document.getElementById('spellMistakesList');
+  const count=document.getElementById('spellMistakesCount');
+  if(!panel || !list) return;
+  if(count) count.textContent=`${spellingMistakes.length} wrong`;
+  if(!spellingMistakes.length){
+    panel.style.display='none';
+    list.innerHTML='';
+    return;
+  }
+  panel.style.display='block';
+  list.innerHTML=spellingMistakes.map((m,i)=>`
+    <div class="spell-mistake-item">
+      <span class="spell-mistake-num">${i+1}.</span>
+      <span class="spell-mistake-heard">${escapeHtml(m.user || '(blank)')}</span>
+      <span class="spell-mistake-arrow">→</span>
+      <span class="spell-mistake-correct">${escapeHtml(m.correct)}</span>
+    </div>`).join('');
+}
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function renderSpellingQuestion(){
+      if(!spellingSet.length) return;
+      const word=spellingSet[spellingIndex];
+      spellingChecked=false;
+      document.getElementById('spellPrompt').textContent=`Word ${spellingIndex+1} of ${spellingSet.length} — listen and type the spelling`;
+      document.getElementById('spellAnswer').textContent='🎧';
+      document.getElementById('spellFeedback').textContent='';
+      document.getElementById('spellFeedback').className='spell-feedback';
+      const input=document.getElementById('spellInput'); input.value=''; input.focus();
+      document.getElementById('spellProgressFill').style.width=((spellingIndex/spellingSet.length)*100)+'%';
+      document.getElementById('spellScore').textContent=`Correct: ${spellingCorrect}  •  Wrong: ${spellingWrong}  •  Answered: ${spellingIndex}`;
+      clearTimeout(spellingSpeechTimer); spellingSpeechTimer=setTimeout(()=>{ spellingSpeechTimer=null; speakCurrentWord(); },150);
+    }
+    let spellingVoices = [];
+    let spellingSpeechTimer = null;
+    function loadSpellingVoices(){
+      if(!('speechSynthesis' in window)) return;
+      const all = window.speechSynthesis.getVoices();
+      spellingVoices = all.filter(v => /^en[-_]/i.test(v.lang));
+      const select = document.getElementById('spellVoice');
+      if(!select) return;
+      const previous = select.value;
+      select.innerHTML = '';
+      if(!spellingVoices.length){
+        select.innerHTML = '<option value="">Default English voice</option>';
+        return;
+      }
+      const preferredOrder = ['Google UK English Female','Google US English','Microsoft Sonia Online','Microsoft Jenny Online','Microsoft Aria Online','Microsoft Zira','Samantha','Daniel'];
+      spellingVoices.sort((a,b)=>{
+        const ai=preferredOrder.findIndex(n=>a.name.includes(n));
+        const bi=preferredOrder.findIndex(n=>b.name.includes(n));
+        return (ai<0?999:ai)-(bi<0?999:bi) || a.name.localeCompare(b.name);
+      });
+      spellingVoices.forEach((v,i)=>{
+        const o=document.createElement('option');
+        o.value=String(i);
+        o.textContent=`${v.name} (${v.lang})`;
+        select.appendChild(o);
+      });
+      if(previous && Number(previous)<spellingVoices.length) select.value=previous;
+      else select.value='0';
+    }
+    if('speechSynthesis' in window){
+      loadSpellingVoices();
+      window.speechSynthesis.onvoiceschanged=loadSpellingVoices;
+    }
+    function speakCurrentWord(){
+      if(!spellingSet.length) return;
+      if(!('speechSynthesis' in window)){ showToast('Your browser does not support text-to-speech'); return; }
+      window.speechSynthesis.cancel();
+      clearTimeout(spellingSpeechTimer); spellingSpeechTimer=null;
+      const word=spellingSet[spellingIndex];
+      const u=new SpeechSynthesisUtterance(word);
+      const voiceSelect=document.getElementById('spellVoice');
+      const selected=voiceSelect ? spellingVoices[Number(voiceSelect.value)] : null;
+      if(selected){ u.voice=selected; u.lang=selected.lang; } else { u.lang='en-US'; }
+      const speed=parseFloat(document.getElementById('spellSpeed')?.value || '0.72');
+      u.rate=speed;
+      u.pitch=1;
+      u.volume=1;
+      // A short pause before playback makes the first sound less likely to be clipped in some browsers.
+      spellingSpeechTimer=setTimeout(()=>{ spellingSpeechTimer=null; if(spellingSet.length) window.speechSynthesis.speak(u); },80);
+    }
+    function checkSpelling(){
+      if(!spellingSet.length || spellingChecked) return false;
+      const rawTyped=document.getElementById('spellInput').value.trim();
+      const typed=normalizeSpelling(rawTyped);
+      const answer=normalizeSpelling(spellingSet[spellingIndex]);
+      spellingChecked=true;
+      const fb=document.getElementById('spellFeedback');
+      const answerEl=document.getElementById('spellAnswer');
+      if(typed===answer){
+        spellingCorrect++;
+        fb.textContent='✓ Correct!';
+        fb.className='spell-feedback correct';
+        answerEl.textContent='✓';
+      } else {
+        spellingWrong++;
+        spellingMistakes.push({user: rawTyped || '(blank)', correct: spellingSet[spellingIndex]});
+        renderSpellingMistakes();
+        // Hyphens are part of the spelling: a missing/extra/moved hyphen is incorrect.
+        const needsHyphen = spellingSet[spellingIndex].includes('-');
+        const typedHasSameHyphen = (document.getElementById('spellInput').value.match(/-/g)||[]).length === (spellingSet[spellingIndex].match(/-/g)||[]).length;
+        answerEl.textContent=spellingSet[spellingIndex];
+        fb.textContent = (needsHyphen && !typedHasSameHyphen)
+          ? `✗ Incorrect — the hyphen (-) is required. Correct: ${spellingSet[spellingIndex]}`
+          : `✗ Incorrect — correct answer: ${spellingSet[spellingIndex]}`;
+        fb.className='spell-feedback wrong';
+      }
+      document.getElementById('spellScore').textContent=`Correct: ${spellingCorrect}  •  Wrong: ${spellingWrong}  •  Answered: ${spellingIndex+1}`;
+      document.getElementById('spellProgressFill').style.width=(((spellingIndex+1)/spellingSet.length)*100)+'%';
+      return true;
+    }
+    function showSpellingAnswer(){
+      if(!spellingSet.length) return;
+      if(!spellingChecked){
+        const rawTyped=document.getElementById('spellInput').value.trim();
+        spellingChecked=true;
+        spellingWrong++;
+        spellingMistakes.push({user: rawTyped || '(answer revealed)', correct: spellingSet[spellingIndex]});
+        renderSpellingMistakes();
+        document.getElementById('spellScore').textContent=`Correct: ${spellingCorrect}  •  Wrong: ${spellingWrong}  •  Answered: ${spellingIndex+1}`;
+        document.getElementById('spellProgressFill').style.width=(((spellingIndex+1)/spellingSet.length)*100)+'%';
+      }
+      document.getElementById('spellAnswer').textContent=spellingSet[spellingIndex];
+      document.getElementById('spellFeedback').textContent='Answer revealed — counted as incorrect. Review it, then press Next.';
+      document.getElementById('spellFeedback').className='spell-feedback wrong';
+    }
+    function nextSpelling(){
+      if(!spellingSet.length) return;
+      clearTimeout(spellingAdvanceTimer);
+      spellingAdvanceTimer=null;
+      if(!spellingChecked){
+        if(!checkSpelling()) return;
+      }
+      if(spellingIndex>=spellingSet.length-1){
+        document.getElementById('spellPrompt').textContent='🎉 Practice complete!';
+        document.getElementById('spellAnswer').textContent=`${spellingCorrect} correct • ${spellingWrong} wrong`;
+        document.getElementById('spellInput').disabled=true;
+        document.getElementById('spellProgressFill').style.width='100%';
+        const total=spellingSet.length;
+        const pct=Math.round((spellingCorrect/total)*100);
+        document.getElementById('spellFeedback').textContent=`Final score: ${spellingCorrect}/${total} (${pct}%) • Wrong: ${spellingWrong}`;
+        document.getElementById('spellFeedback').className='spell-feedback '+(spellingWrong===0?'correct':'wrong');
+        document.getElementById('spellScore').textContent=`Correct: ${spellingCorrect}  •  Wrong: ${spellingWrong}  •  Total: ${total}`;
+        return;
+      }
+      spellingIndex++;
+      renderSpellingQuestion();
+    }
+
+    // Enter checks the answer and moves on. Correct or wrong, the feedback is shown
+    // briefly before advancing so the last word (and every word) is actually visible
+    // instead of being instantly overwritten by the next question or the results screen.
+    document.getElementById('spellInput').addEventListener('keydown',e=>{
+      if(e.key!=='Enter') return;
+      e.preventDefault();
+      if(spellingAdvanceTimer) return;
+      if(!spellingChecked){
+        const ok=checkSpelling();
+        if(!ok) return;
+        const delay = spellingFeedbackIsWrong() ? 1400 : 600;
+        spellingAdvanceTimer=setTimeout(()=>{ spellingAdvanceTimer=null; nextSpelling(); },delay);
+      } else {
+        nextSpelling();
+      }
+    });
+
+    function spellingFeedbackIsWrong(){
+      return document.getElementById('spellFeedback').classList.contains('wrong');
+    }
+
+    updateSpellCount();
+
   </script>
 </body>
 </html>
