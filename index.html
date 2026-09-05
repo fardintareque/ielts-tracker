@@ -479,7 +479,7 @@ body.spelling-mode .app-container > .spell-panel{display:block!important;max-wid
       </div>
       <div class="spell-card" id="spellCard">
         <div class="spell-progress"><div class="spell-progress-fill" id="spellProgressFill"></div></div>
-        <div class="spell-prompt" id="spellPrompt">Click “Start Practice” to begin.</div>
+        <div class="spell-prompt" id="spellPrompt">Click "Start Practice" to begin.</div>
         <div class="spell-answer" id="spellAnswer">🎧</div>
         <input class="spell-input" id="spellInput" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Type the spelling you hear..." disabled>
         <div class="spell-feedback" id="spellFeedback"></div>
@@ -681,7 +681,10 @@ body.spelling-mode .app-container > .spell-panel{display:block!important;max-wid
 
       const clean = value => String(value)
         .replace(/[\*_~`]/g,'')
-        .replace(/[★♦️🗣️✒️🎧📄📝🔖📚☘️🤗]/g,'')
+        .replace(/\p{Extended_Pictographic}/gu,'')
+        .replace(/[\u{1F1E6}-\u{1F1FF}]/gu,'')
+        .replace(/[\uFE0F\u200D\u2060]/g,'')
+        .replace(/[★☆✦✧✩✪❖◆◇✓✔➤➜]/g,'')
         .replace(/^\s*[>]+\s*/,'')
         .replace(/\u00a0/g,' ')
         .replace(/[ \t]+/g,' ')
